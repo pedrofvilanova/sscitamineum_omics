@@ -611,4 +611,51 @@ done
 ```
 >Note in the code above, we specifically gave as input the adapter sequences we want the software to look for. **Always** check the correct adapters used during the sequencing library to give as input to the program. Because they might be different for each one of your data sets.
 
-Final step of this processing stage, Hisat2 v.2.1.0 (Kim et al., 2015) was used  to map transcripts against _de novo_ assembled genome reference from Taniguti et al., 2015. We have other three genomes, but as we aspire to conduct differential expression analysis we need to map everything against the same sequence.      
+Final step of this processing stage, Hisat2 v.2.1.0 (Kim et al., 2015) was used  to map transcripts against _de novo_ assembled genome reference from Taniguti et al., 2015. We have other three genomes, but as we aspire to conduct differential expression analysis we need to map everything against the same sequence.
+
+```
+#!/bin/bash
+
+ref=/media/SSD1TB/thais/Ssci_references/NCBI_Ssci_genome.fa
+index=/media/SSD1TB/thais/Ssci_references/NCBI_Ssci_genome.fa.index
+
+# Index reference genome
+hisat2-build "$ref" "$index"
+
+# Map reads against genome
+for i in /media/SSD1TB/thais/RNAseq_in_planta/04/iac/data_novaseq_cut/*PE1.fastq.gz
+do
+    file2=$(echo "$i" | sed "s/PE1/PE2/g")
+    rep=$(basename "$i" | sed -E "s/IAC_inoc_rep([0-9]+)_less_ribo_PE1.*/\1/g")
+
+    echo "Analyzing $i and $file2 for replicate $rep"
+
+    hisat2 -p 15 --rg-id iac_SSC04 --rg SM:iac_SSC04_rep"$rep" \
+    --summary-file ./summary_iac_SSC04_inplanta_rep"$rep"_mapped2_reference.txt \
+    -x "$index" -1 "$i" -2 "$file2" \
+    -S ./iac_SSC04_inplanta_rep"$rep"_mapped2_reference.sam
+
+    # Map convert to bam and index mapping
+    samtools sort ./iac_SSC04_inplanta_rep"$rep"_mapped2_reference.sam > ./iac_SSC04_inplanta_rep"$rep"_mapped2_reference.bam
+    samtools index ./iac_SSC04_inplanta_rep"$rep"_mapped2_reference.bam
+    rm ./iac_SSC04_inplanta_rep"$rep"_mapped2_reference.sam
+done
+```
+
+This step resulted in mapping files in ```.bam``` format. Essential for the next step in our analysis.
+
+## :dna: Differentially Expressed Genes: What did we do?
+
+A read count table was obtained using featureCounts v.1.6.0 from the Subread package (Liao et al., 2014). It is **very** important to note, that we used the following annotation file: ```/media/SSD1TB/thais/deg/Sscitamineum_HRreconcilingJun21_renamed.gtf```
+
+To obtain the count matrix, we used the below code:
+```
+featureCounts -s 0 -p -T 10 -t CDS -g gene_id -a /media/SSD1TB/thais/deg/Sscitamineum_HRreconcilingJun21_renamed.gtf \
+-o ./counts/Quantified_all_samples.txt \
+$(ls /media/SSD1TB/thais/RNAseq_in_vitro/04/*.bam) \
+$(ls /media/SSD1TB/thais/RNAseq_in_vitro/39/*.bam) \
+$(ls /media/SSD1TB/thais/RNAseq_in_planta/04/iac/mapping_to_reference/*.bam) \
+$(ls /media/SSD1TB/thais/RNAseq_in_planta/04/sp/mapping_to_reference/*.bam) \
+$(ls /media/SSD1TB/thais/RNAseq_in_planta/39/iac/*.bam) \
+$(ls /media/SSD1TB/thais/RNAseq_in_planta/39/sp/*.bam) \
+```
