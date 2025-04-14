@@ -646,7 +646,7 @@ This step resulted in mapping files in ```.bam``` format. Essential for the next
 
 ## :dna: Differentially Expressed Genes: What did we do?
 
-A read count table was obtained using featureCounts v.1.6.0 from the Subread package (Liao et al., 2014). It is **very** important to note, that we used the following annotation file: ```/media/SSD1TB/thais/deg/Sscitamineum_HRreconcilingJun21_renamed.gtf```
+A read count table was obtained using featureCounts v.1.6.0 from the Subread package (Liao et al., 2014). It is **very** important to note, that we used the following annotation file: ```/media/SSD1TB/thais/deg/Sscitamineum_HRreconcilingJun21_renamed.gtf``` which is the reference annotation from Taniguti et al. (2015).
 
 To obtain the count matrix, we used the below code:
 ```
@@ -659,3 +659,304 @@ $(ls /media/SSD1TB/thais/RNAseq_in_planta/04/sp/mapping_to_reference/*.bam) \
 $(ls /media/SSD1TB/thais/RNAseq_in_planta/39/iac/*.bam) \
 $(ls /media/SSD1TB/thais/RNAseq_in_planta/39/sp/*.bam) \
 ```
+
+Now, we need to import this count table into Rstudio. Let's check step-by-step! First, let's set our working directory:
+
+```
+setwd("C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/edgeR_04-01/resistant_vs_susceptible/04/")
+```
+
+Now, we need to import out count matrix, containing all replicates of every treatment we want to test:
+
+```
+count_table <- read.table("C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/DEGs_transcriptome/all_counts.csv", sep=";", header = TRUE, row.names = "Geneid")
+```
+
+Let's rename our rownames as our gene ID names:
+```
+names(gene_length) <- rownames(count_table)
+```
+
+We removed columns 1 to 11, because they harbor unnecessary information for our analysis:
+
+```
+count_table <- count_table[, -(1:11)]
+```
+
+featureCounts output is really messy, so each column has a really long name referring to the original directory that file counting came from, but we don't want that. Let's rename each column according to our treatment and biological replicate:
+
+```
+colnames(count_table) <- c("IAC_04_inoc_rep10", "IAC_04_inoc_rep11", "IAC_04_inoc_rep12",
+                           "IAC_04_inoc_rep1", "IAC_04_inoc_rep2", "IAC_04_inoc_rep3",
+                           "IAC_04_inoc_rep4", "IAC_04_inoc_rep5", "IAC_04_inoc_rep6",
+                           "IAC_04_inoc_rep7", "IAC_04_inoc_rep8", "IAC_04_inoc_rep9",
+                           "SP_04_inoc_rep10", "SP_04_inoc_rep11", "SP_04_inoc_rep12",
+                           "SP_04_inoc_rep1", "SP_04_inoc_rep2", "SP_04_inoc_rep3",
+                           "SP_04_inoc_rep4", "SP_04_inoc_rep5", "SP_04_inoc_rep6",
+                           "SP_04_inoc_rep7", "SP_04_inoc_rep8", "SP_04_inoc_rep9",
+                           "IAC_39_inoc_rep1", "IAC_39_inoc_rep2", "IAC_39_inoc_rep3",
+                           "SP_39_inoc_rep1", "SP_39_inoc_rep2", "SP_39_inoc_rep3")
+```
+
+Now, you might notice that we have 12 "replicates" for SSC04 inoculated plants. But... that's actually not it! We actually only have three biological replicates, but in this particular sequence, we sequenced our samples distributed in four different lanes (3 x 4 = 12). So, in reality, those are the corresponding files and biological replicates:
+
+| File | Biological replicate|
+|------------- | ------------- | 
+| rep4 | 1 | 
+| rep5  | 1 | 
+| rep6  | 1 |  
+| rep7  | 1 | 
+| rep8 | 2 | 
+| rep9 | 2 | 
+| rep10 |  2 | 
+| rep11 |  2 | 
+| rep1 | 3 | 
+| rep12 | 3 | 
+| rep1 | 3 | 
+| rep2 |  3 | 
+| rep3 | 3 | 
+
+>This organization was made by Thaís D'al Sasso and Renato Bombardelli.
+
+Since we did the count matrix with each one of the files separately, we now need to merge the counts into their respective biological replicates and conditions:
+
+```
+IAC_04_R1 <- (count_table$IAC_04_inoc_rep4 + count_table$IAC_04_inoc_rep5 + count_table$IAC_04_inoc_rep6 + count_table$IAC_04_inoc_rep7)
+IAC_04_R2 <- (count_table$IAC_04_inoc_rep8 + count_table$IAC_04_inoc_rep9 + count_table$IAC_04_inoc_rep10 + count_table$IAC_04_inoc_rep11)
+IAC_04_R3 <- (count_table$IAC_04_inoc_rep12 + count_table$IAC_04_inoc_rep1 + count_table$IAC_04_inoc_rep2 + count_table$IAC_04_inoc_rep3)
+SP_04_R1 <- (count_table$SP_04_inoc_rep4 + count_table$SP_04_inoc_rep5 + count_table$SP_04_inoc_rep6 + count_table$SP_04_inoc_rep7)
+SP_04_R2 <- (count_table$SP_04_inoc_rep8 + count_table$SP_04_inoc_rep9 + count_table$SP_04_inoc_rep10 + count_table$SP_04_inoc_rep11)
+SP_04_R3 <- (count_table$SP_04_inoc_rep12 + count_table$SP_04_inoc_rep1 + count_table$SP_04_inoc_rep2 + count_table$SP_04_inoc_rep3)
+IAC_39_R1 <- (count_table$IAC_39_inoc_rep1)
+IAC_39_R2 <- (count_table$IAC_39_inoc_rep2)
+IAC_39_R3 <- (count_table$IAC_39_inoc_rep3)
+SP_39_R1 <- (count_table$SP_39_inoc_rep1)
+SP_39_R2 <- (count_table$SP_39_inoc_rep2)
+SP_39_R3 <- (count_table$SP_39_inoc_rep3)
+```
+
+Now, remember: We are dealing with different sequencing batches, from different technologies and times, so it is important we avoid any sort of bias into the analysis.  In this report we're only gonna include the analysis of SSC04 inoculated plants, we did the exact same procedure for all other treatments. 
+We're gonna subset and proceed with differential analysis only between treatments from the same sequencing batch.
+
+```
+count_table_04 <- as.matrix(data.frame(IAC_04_R1,IAC_04_R2,IAC_04_R3,
+                     SP_04_R1,SP_04_R2,SP_04_R3))
+```
+
+We still want to maintain the same gene names from the original count table though, so:
+```
+rownames(count_table_04) <- rownames(count_table)
+```
+
+Now, let's create **groups** inside the matrix:
+```
+(group <- gsub("_R.*","",colnames(count_table_04)))
+```
+
+Before proceeding to differential analysis I'd like to assess this sequencing library size, and we'll do that using ```ggplot2```:
+```
+
+library (ggplot2)
+
+# Assuming librarySizes contains the total counts for each sample
+librarySizes <- colSums(count_table_04)
+
+# Create a data frame for plotting
+library_df <- data.frame(Sample = names(librarySizes), Count = librarySizes, Group = group)
+
+# Create ggplot object
+library_plot <- ggplot(library_df, aes(x = Sample, y = Count, fill = Group)) +
+  geom_bar(stat = "identity", color = "black", linewidth= 0.5, width = 0.7) +  # Adjust fill, color, and size
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 60, size = 12, hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +  # Center the plot title
+  xlab("Samples") +
+  ylab("Library Sizes") +
+  ggtitle("Barplot of Library Sizes") +
+  scale_fill_manual(values = c("04_IAC" = "#E1E1E1", "04_SP" = "#808080"))  # Specify colors for each group
+
+# Add horizontal dashed line
+library_plot <- library_plot +
+  geom_hline(yintercept = 82212, linetype = "dashed")
+
+# Save the plot
+ggsave(filename = "SSC04_inplanta_library_size.png",
+       plot = library_plot,
+       width = 8, height = 10, dpi = 300)
+```
+
+Before proceeding to the analysis, we might want to check the un-normalized count distribution, and we'll also do that with basic R functions:
+
+```
+# Get log2 counts per million
+logcounts <- log2(count_table_04  + 1)
+
+# Start by opening a device to save the plot
+pdf("boxplot_un-normalized_04.pdf", width = 8, height = 6)
+
+# Plot the boxplot
+boxplot(logcounts, 
+        xlab = "", 
+        ylab = "Log2(Counts)",
+        las = 2,
+        col = c("#E1E1E1", "#808080")[as.numeric(factor(group))],
+        mar = c(5, 5, 3, 3),
+        cex.axis = 0.8,
+        main = "Un-normalized library counts") # Adjust margins as needed
+
+# Add a blue horizontal line that corresponds to the median logCPM
+abline(h = median(as.matrix(logcounts)), col = "blue")
+
+# Close the device to save the plot
+dev.off()
+```
+
+Before proceeding to differentially expressed genes' analysis we need to account for those differences, so we need to **normalize the data**. Before we do that, we select the genes that have no expression in a given cultivar, but it is expressed in the other. For that, we'll use the following code:
+
+```
+IAC_04_expressed_only <- count_table_04[rowSums(count_table_04[,1:3] > 0) >= 3 & rowSums(count_table_04[,4:6]) == 0, ]
+```
+```
+SP_04_expressed_only <- count_table_04[rowSums(count_table_04[,4:6] > 0) >= 3 & rowSums(count_table_04[,1:3]) == 0, ]
+```
+
+Now, that's an important topic! What are we considering as a gene being expressed? We are considering a gene to be expressed only if it has at least 1 count in all three replicates of a given treatment.
+
+We can now proceed to data normalization, and we will proceed to differential expression analysis with the ```edgeR``` package (McCarthy et al., 2012; Robinson et al., 2009). Let's call the library:
+
+```
+library("edgeR")
+```
+
+Let's assign the groups and count table to create a DGEList object:
+```
+y <- DGEList(counts = count_table_04, group = group)
+```
+
+Before proceeding, we need to filter gene expression, as we described above:
+
+```
+gene_atende_criterio <- function(row) {
+  all(row[1:3] >= 1) || all(row[4:6] >= 1)
+}
+
+genes_to_keep <- apply(count_table_04, 1, gene_atende_criterio)
+```
+
+After creating the filter, we can proceed to filtering:
+
+```
+y_filtered <- y[genes_to_keep, , keep.lib.sizes = FALSE]
+```
+
+And now we have our set of genes, let's normalize according to the TMM method (Trimmed Mean of M-values)
+
+```
+y_norm <- calcNormFactors(y_filtered, method=c("TMM"))
+```
+
+We can calculate TMM-normalized CPM values now:
+
+```
+cpm_values_04_inplanta <- cpm(y_norm)
+```
+
+Since we have normalized counts, let's check the graph of normalized distribution to see normalization effects:
+
+```
+# Get log2 counts per million
+logcounts <- log2(cpm_values_04_inplanta  + 1)
+
+# Start by opening a device to save the plot
+pdf("boxplot_normalized_04.pdf", width = 8, height = 6)
+
+# Plot the boxplot
+boxplot(logcounts, 
+        xlab = "", 
+        ylab = "Log2(Counts)",
+        las = 2,
+        col = c("#E1E1E1", "#808080")[as.numeric(factor(group))],
+        mar = c(5, 5, 3, 3),
+        cex.axis = 0.8,
+        main = "Normalized library counts") # Adjust margins as needed
+
+# Add a blue horizontal line that corresponds to the median logCPM
+abline(h = median(as.matrix(logcounts)), col = "blue")
+
+# Close the device to save the plot
+dev.off()
+```
+
+
+For differential expression analysis, we need to create a design matrix
+```
+design <- model.matrix(~ 0 + group, data = y_norm$samples)
+```
+> model.matrix is a function used to create a design matrix for the differential expression analysis.
+>~ 0 + group specifies the model formula, where group is the factor variable that defines the treatment conditions for each sample.
+>The ~ 0 term indicates that there should be no intercept in the model matrix
+
+Next step is to assign column names to the design matrix based on the levels of the group factor variable
+
+```
+colnames(design) <- levels(y_norm$samples$group)
+```
+
+To estimate dispersion values for the genes we use the code below:
+```
+y_disp <- estimateDisp(y_norm, design, robust = TRUE)
+```
+
+Among the plotting we can do, we can plot Biological Coefficient of Variation (BCV). The BCV is a measure of the dispersion of the data and is important for understanding the variability in gene expression between samples
+
+```
+plotBCV(y_disp)
+```
+
+The last step is to proceed with the Likelihood ratio test
+
+```
+fit <- glmFit(y_disp, design, robust = TRUE)
+```
+
+The next step is important, because we need to define our contrast, in this case, we're gonna **always** use the resistant cultivar data against the susceptible cultivar:
+
+```
+my.contrast <- makeContrasts("SP_04 - IAC_04", levels = design)
+```
+
+We're gonna use Benjamini-Hochberg adjust method and we'll consider 0.05 as our threshold:
+
+```
+lrt <- glmLRT(fit, contrast = my.contrast)
+topTags(lrt)
+DE <- decideTestsDGE(lrt, adjust.method = "BH", p.value = 0.05)
+summary(DE)
+```
+
+To obtain results, we used the top tags function:
+
+```
+top_tags <- topTags(lrt, n = 200000)
+```
+
+And again, add the gene IDs to the first column:
+
+```
+results_with_gene_id <- cbind(gene_id = rownames(top_tags$table), top_tags$table)
+```
+
+
+Now we can export the genes considered to be expressed in a table:
+```
+write.table(file="C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/edgeR_04-01/resistant_vs_susceptible/Expressed_SP_IAC_04.csv", results_with_gene_id, sep = '\t', row.names = FALSE)
+```
+
+Lastly, we export DEGs to tables to proceed to further analyses:
+
+```
+threshold <- 0.05
+DEGs <- results_with_gene_id[results_with_gene_id[, 6] < threshold, ] #Here, if using FDR, column 6; If using raw PValue, column 5. # [, 6] indica todas as linhas, na coluna 6.
+write.table(file = "C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/edgeR_04-01/resistant_vs_susceptible/DEGs_SP_IAC_04_pval.csv", DEGs, row.names=FALSE, sep = "\t")
+```
+
