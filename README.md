@@ -563,6 +563,52 @@ When we check QUAST statistics regarding the reference:
 
 Looking at this data, it appears each iteration of Pilon after Medaka had slightly better statistics regarding the reference, but it remains unclear where the plateau of these changes would be. 
 
-# Gene annotation and variant calling
+# :dna: Gene annotation and variant calling
 
 The pipelines related to gene annotation and variant calling can be viewed at Lucas Taniguti's GitHub page: https://github.com/lmtani/s-scitamineum-pipelines
+
+# RNA sequencing analyses 
+
+## :seedling: :test_tube: Experimental Design: Where our data came from?
+Our organism of interest is a biotrophic fungus named _Sporisorium scitamineum_, belonging to the group of basidiomycetes. We have data from four different sequencing batches, they are:
+
+  1. SSC04 isolate growing in YM (yeast-medium) axenic culture during 15 hours (2024).
+     * PolyA enrichment
+  3. SSC39 isolate growing in YM (yeast-medium) axenic culture during 15 hours (2013).
+     * PolyA enrichment
+  5. SSC04 isolate infecting the sugarcane cultivars IAC66-6 (susceptible) and SP8032-80 (resistant).
+      * Total RNA
+  6. SSC39 isolate infecting the sugarcane cultivars IAC66-6 (susceptible) and SP8032-80 (resistant).
+     * PolyA enrichment
+       
+First of all, we needed to assess the read quality from the sequencing data. How confident we are in the sequenced bases? For that, we used **FastQC v.0.11.5** (Andrews, 2010). We used this quick code below:
+
+```
+#!/bin/bash
+mkdir -p ./FastQC_raw
+for i in *fastq.gz
+do
+fastqc "$i" -o ./FastQC_raw -t 8
+done
+```
+
+Next, read filtering step consisted in removing library adapters, low quality reads (Q < 20) and ambiguous bases (N) using **Cutadapt v.1.18** (Martin, 2011):
+```
+#!/bin/bash
+
+for i in ../raw_data/*_R1_001.fastq.gz
+do
+    file2=`echo "$i" | sed "s/_R1/_R2/g"`
+    output1=$(basename "$i" | sed "s/_R1_001.fastq.gz//g")
+
+    cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT \
+    -m 50 --max-n 2 -q 20 -j 6 \
+    -o "$output1"_cut_PE1.fastq.gz \
+    -p "$output1"_cut_PE2.fastq.gz \
+    "./$i"  "./$file2" > "$output1"_cutadapt_summary.txt
+
+done
+```
+>Note in the code above, we specifically gave as input the adapter sequences we want the software to look for. **Always** check the correct adapters used during the sequencing library to give as input to the program. Because they might be different for each one of your data sets.
+
+Final step of this processing stage, Hisat2 v.2.1.0 (Kim et al., 2015) was used  to map transcripts against _de novo_ assembled genome reference from Taniguti et al., 2015. We have other three genomes, but as we aspire to conduct differential expression analysis we need to map everything against the same sequence.      
