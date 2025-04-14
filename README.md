@@ -13,7 +13,7 @@ The pipeline described in this GitHub involved the following steps:
 6. Gene annotation with FunGAP
 7. Variant annotation with SNPeff and functional annotation with Blast2GO
 
-# :bar_chart: DNA sequencing report
+# :bar_chart: DNA sequencing report and assembly
 
 For our article, we sequenced the SSC04 (_MAT-1_) and SSC39 (_MAT-2_) haploid strains of _Sporisorium scitamineum_, using the ```FLO-MIN106``` flow cell type. For both sequencing runs, we used the R9 sequencing kit type ```SQK-LSK109```. For SSC04 (_MAT-1_) the flow cell ID was  ```FAL62188``` and for SSC39 (_MAT-2_) the flow cell ID was ```FAL62161```. 
 
@@ -563,3 +563,6 @@ When we check QUAST statistics regarding the reference:
 
 Looking at this data, it appears each iteration of Pilon after Medaka had slightly better statistics regarding the reference, but it remains unclear where the plateau of these changes would be. 
 
+# Gene annotation and variant calling
+
+The pipelines related to gene annotation and variant calling can be viewed at Lucas Taniguti's GitHub page: https://github.com/lmtani/s-scitamineum-pipelines
