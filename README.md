@@ -833,14 +833,20 @@ Let's assign the groups and count table to create a DGEList object:
 y <- DGEList(counts = count_table_04, group = group)
 ```
 
-Before proceeding, we need to filter gene expression, as we described above:
+We then transform to CPM values:
+
+```
+cpms <- cpm(y)
+```
+
+Before proceeding, we need to filter gene expression, as we described above (1CPM in at least one triplicate):
 
 ```
 gene_atende_criterio <- function(row) {
   all(row[1:3] >= 1) || all(row[4:6] >= 1)
 }
 
-genes_to_keep <- apply(count_table_04, 1, gene_atende_criterio)
+genes_to_keep <- apply(cpms, 1, gene_atende_criterio)
 ```
 
 After creating the filter, we can proceed to filtering:
