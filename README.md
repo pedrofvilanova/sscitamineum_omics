@@ -410,10 +410,7 @@ Rscript plotTelomericRepeatPositions.R SSC04B_flye.ctg.g50kbp.tidk.CTAACC_telome
 
 By looking at the comparison between Flye vs. Canu assemblies, we observeed that Flye assembled 22 telomeric regions, while Canu was able to assemble 46 telomeric regions, twice the number, and many of those telomeric regions are contigs T2T.
 
-![telomeric_flye_canu](https://github.com/pedrofvilanova/sscitamineum_omics/assets/73193082/62bc2e22-d4ea-4cd2-b1b8-382afc7299f3)
-
-Even though MaSuRCA assembled 28 contigs and have apparently good statistics, we chose to analyze it separately. It assembled 40 telomeric regions, but those regions are present in very small contigs and we can see in the first contig the presence of multiple telomeric regions, probably the reason why the contig is larger than the reference
-![image](https://github.com/pedrofvilanova/sscitamineum_omics/assets/73193082/25884b63-74df-4b61-a126-36e04b918ed3)
+Even though MaSuRCA assembled 28 contigs and have apparently good statistics, we chose to analyze it separately. It assembled 40 telomeric regions, but those regions are present in very small contigs and the first contig had the presence of multiple telomeric regions, probably the reason why the contig is larger than the reference.
 
 Last, but not least, we graphically plot a comparative analysis between our reference and the assemblies. We did it using ```JupiterPlot```:
 
@@ -423,11 +420,10 @@ Last, but not least, we graphically plot a comparative analysis between our refe
 
 The output image shows that Flye and Canu assemblies are quite similar to our reference, be it in size or in collinear sequences, with few ribbons not aligning to the same chromosome in the reference, all of them in telomeric repetitive regions.
 
-![compare_to_Ref](https://github.com/pedrofvilanova/sscitamineum_omics/assets/73193082/01496918-02e3-44f7-ac36-594c9e98f517)
+![Flye](https://github.com/user-attachments/assets/64b870ea-920c-4956-9a97-04eb4dd8960d)
+
 
 When we looked at MaSuRCA assembly in comparison with the reference it became quite clear why the N50 is higher and the largest contig is 1 million base pairs longer than the reference contig. It seems that a whole contig actually became attached to the end of the first contig, which would explain the telomeric repeats in the middle of the contig as evidenced by the telomeric regions figure.
-
-![SSC04B_masurca](https://github.com/pedrofvilanova/sscitamineum_omics/assets/73193082/00f85169-f117-4ebc-a3f1-0b0e94fbb0b7)
 
 After amounting these evidences, we chose to eliminate MaSuRCA assembly to go forward.
 
