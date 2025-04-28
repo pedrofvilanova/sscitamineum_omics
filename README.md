@@ -1,8 +1,6 @@
-# :dna: Haplotype comparative genomics and high-depth dual-transcriptomics reveal genetic variation and pathogenic strategies of sugarcane smut
+# :dna: Chromosome-level comparative genomics and host-specific fungal transcriptomics uncover adaptive virulence strategies in the sugarcane smut pathogen
 
-The following repository contains the workflow used in _"Haplotype comparative genomics and high-depth dual-transcriptomics reveal genetic variation and pathogenic strategies of sugarcane smut"_ by Vilanova and collaborators* (2025):
-
-_Pedro Fernando Vilanova (PFV), Lucas Mitsuo Taniguti (LMT), Marcella Ferreira (MF), Thaís Carolina da Silva Dal’Sasso (TCSDS), Gustavo Schiavone Crestana (GSC), Lâina da Silva de Oliveira (LSO), Renato Gustavo Hoffmann Bombardelli (RGHB), João Paulo Kitajima (JPK), Silvana Creste (SC), Luís Eduardo Aranha Camargo (LEAC), Marie-Anne Van Sluys (MAVS), Claudia Barros Monteiro-Vitorello (CMBV)._
+The following repository contains the workflow used in _"Chromosome-level comparative genomics and host-specific fungal transcriptomics uncover adaptive virulence strategies in the sugarcane smut pathogen"_ by Vilanova and collaborators* (2025):
 
 The pipeline described in this GitHub involved the following steps:
 1. Assembly of Nanopore reads into contigs with Flye and Canu.
