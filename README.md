@@ -657,13 +657,13 @@ $(ls /media/SSD1TB/thais/RNAseq_in_planta/39/sp/*.bam) \
 Now, we need to import this count table into Rstudio. Let's check step-by-step! First, let's set our working directory:
 
 ```
-setwd("C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/edgeR_04-01/resistant_vs_susceptible/04/")
+setwd("~/resistant_vs_susceptible/04/")
 ```
 
 Now, we need to import out count matrix, containing all replicates of every treatment we want to test:
 
 ```
-count_table <- read.table("C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/DEGs_transcriptome/all_counts.csv", sep=";", header = TRUE, row.names = "Geneid")
+count_table <- read.table("all_counts.csv", sep=";", header = TRUE, row.names = "Geneid")
 ```
 
 Let's rename our rownames as our gene ID names:
@@ -949,14 +949,14 @@ results_with_gene_id <- cbind(gene_id = rownames(top_tags$table), top_tags$table
 
 Now we can export the genes considered to be expressed in a table:
 ```
-write.table(file="C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/edgeR_04-01/resistant_vs_susceptible/Expressed_SP_IAC_04.csv", results_with_gene_id, sep = '\t', row.names = FALSE)
+write.table(file="Expressed_SP_IAC_04.csv", results_with_gene_id, sep = '\t', row.names = FALSE)
 ```
 
 Lastly, we export DEGs to tables to proceed to further analyses:
 
 ```
 threshold <- 0.05
-DEGs <- results_with_gene_id[results_with_gene_id[, 6] < threshold, ] #Here, if using FDR, column 6; If using raw PValue, column 5. # [, 6] indica todas as linhas, na coluna 6.
-write.table(file = "C:/Users/pedro/OneDrive/Área de Trabalho/Mestrado/Artigo_2023/edgeR_04-01/resistant_vs_susceptible/DEGs_SP_IAC_04_pval.csv", DEGs, row.names=FALSE, sep = "\t")
+DEGs <- results_with_gene_id[results_with_gene_id[, 6] < threshold, ] #Here, if using FDR, column 6; If using raw PValue, column 5. 
+write.table(file = "DEGs_SP_IAC_04_pval.csv", DEGs, row.names=FALSE, sep = "\t")
 ```
 
